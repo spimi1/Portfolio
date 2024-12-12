@@ -6,6 +6,7 @@ import { parentPort, threadId } from 'node:worker_threads';
 import { getRequestHeader, splitCookiesString, setResponseStatus, setResponseHeader, send, getRequestHeaders, defineEventHandler, handleCacheHeaders, createEvent, fetchWithEvent, isEvent, eventHandler, getResponseStatus, setResponseHeaders, setHeaders, sendRedirect, proxyRequest, createError, getQuery as getQuery$1, getCookie, createApp, createRouter as createRouter$1, toNodeListener, lazyEventHandler, getRouterParam, readBody, getResponseStatusText } from 'file://C:/Users/micha/portfolio/node_modules/h3/dist/index.mjs';
 import { visit } from 'file://C:/Users/micha/portfolio/node_modules/unist-util-visit/index.js';
 import { toString } from 'file://C:/Users/micha/portfolio/node_modules/hast-util-to-string/index.js';
+import { createWasmOnigEngine } from 'file://C:/Users/micha/portfolio/node_modules/shiki/dist/engine-oniguruma.mjs';
 import { createStorage, prefixStorage } from 'file://C:/Users/micha/portfolio/node_modules/unstorage/dist/index.mjs';
 import { withQuery, joinURL, withTrailingSlash, parseURL, withoutBase, getQuery, joinRelativeURL, withLeadingSlash, withoutTrailingSlash, isRelative } from 'file://C:/Users/micha/portfolio/node_modules/ufo/dist/index.mjs';
 import { hash } from 'file://C:/Users/micha/portfolio/node_modules/ohash/dist/index.mjs';
@@ -20,6 +21,7 @@ import { markdownLineEnding, markdownSpace } from 'file://C:/Users/micha/portfol
 import { push, splice } from 'file://C:/Users/micha/portfolio/node_modules/micromark-util-chunked/dev/index.js';
 import { resolveAll } from 'file://C:/Users/micha/portfolio/node_modules/micromark-util-resolve-all/index.js';
 import { normalizeUri } from 'file://C:/Users/micha/portfolio/node_modules/micromark-util-sanitize-uri/dev/index.js';
+import slugify from 'file://C:/Users/micha/portfolio/node_modules/slugify/slugify.js';
 import remarkParse from 'file://C:/Users/micha/portfolio/node_modules/remark-parse/index.js';
 import remark2rehype from 'file://C:/Users/micha/portfolio/node_modules/remark-rehype/index.js';
 import remarkMDC, { parseFrontMatter } from 'file://C:/Users/micha/portfolio/node_modules/remark-mdc/dist/index.mjs';
@@ -32,8 +34,7 @@ import rehypeRaw from 'file://C:/Users/micha/portfolio/node_modules/rehype-raw/i
 import { detab } from 'file://C:/Users/micha/portfolio/node_modules/detab/index.js';
 import Slugger from 'file://C:/Users/micha/portfolio/node_modules/github-slugger/index.js';
 import destr, { destr as destr$1 } from 'file://C:/Users/micha/portfolio/node_modules/destr/dist/index.mjs';
-import { createWasmOnigEngine } from 'file://C:/Users/micha/portfolio/node_modules/shiki/dist/engine-oniguruma.mjs';
-import slugify from 'file://C:/Users/micha/portfolio/node_modules/slugify/slugify.js';
+import { SitemapStream, streamToPromise } from 'file://C:/Users/micha/portfolio/node_modules/sitemap/dist/index.js';
 import { getRequestDependencies, getPreloadLinks, getPrefetchLinks, createRenderer } from 'file://C:/Users/micha/portfolio/node_modules/vue-bundle-renderer/dist/runtime.mjs';
 import { stringify, uneval } from 'file://C:/Users/micha/portfolio/node_modules/devalue/index.js';
 import { renderToString } from 'file://C:/Users/micha/portfolio/node_modules/vue/server-renderer/index.mjs';
@@ -2020,9 +2021,11 @@ const _WOcRMt = defineEventHandler(async (event) => {
   return createNav(contents?.result || contents, configs);
 });
 
+const _lazy_Y1tems = () => Promise.resolve().then(function () { return sitemap_xml$1; });
 const _lazy_uNfeLf = () => Promise.resolve().then(function () { return renderer$1; });
 
 const handlers = [
+  { route: '/sitemap.xml', handler: _lazy_Y1tems, lazy: true, middleware: false, method: undefined },
   { route: '/__nuxt_error', handler: _lazy_uNfeLf, lazy: true, middleware: false, method: undefined },
   { route: '/api/_mdc/highlight', handler: _diqZlB, lazy: false, middleware: false, method: undefined },
   { route: '/api/_content/query/:qid/**:params', handler: _yeREV5, lazy: false, middleware: false, method: "get" },
@@ -3850,7 +3853,7 @@ const parseContent = async (id, content, opts = {}) => {
 const createServerQueryFetch = (event) => (query) => {
   return createPipelineFetcher(() => getIndexedContentsList(event, query))(query);
 };
-function serverQueryContent(event, query, ...pathParts) {
+function serverQueryContent$1(event, query, ...pathParts) {
   const { advanceQuery } = useRuntimeConfig().public.content.experimental;
   const config = contentConfig();
   const queryBuilder = advanceQuery ? createQuery(createServerQueryFetch(event), { initialParams: typeof query !== "string" ? query || {} : {}, legacy: false }) : createQuery(createServerQueryFetch(event), { initialParams: typeof query !== "string" ? query || {} : {}, legacy: true });
@@ -3895,7 +3898,7 @@ const storage = /*#__PURE__*/Object.freeze({
   getContentsIds: getContentsIds,
   getContentsList: getContentsList,
   parseContent: parseContent,
-  serverQueryContent: serverQueryContent,
+  serverQueryContent: serverQueryContent$1,
   sourceStorage: sourceStorage
 });
 
@@ -4297,6 +4300,28 @@ function isObject(obj) {
 const navigation = /*#__PURE__*/Object.freeze({
   __proto__: null,
   createNav: createNav
+});
+
+const serverQueryContent = serverQueryContent$1;
+
+const sitemap_xml = defineEventHandler(async (event) => {
+  const docs = await serverQueryContent(event).find();
+  const sitemap = new SitemapStream({
+    hostname: "http://localhost:3000"
+  });
+  for (const doc of docs) {
+    sitemap.write({
+      url: doc._path,
+      changefreq: "monthly"
+    });
+  }
+  sitemap.end();
+  return streamToPromise(sitemap);
+});
+
+const sitemap_xml$1 = /*#__PURE__*/Object.freeze({
+  __proto__: null,
+  default: sitemap_xml
 });
 
 const Vue3 = version[0] === "3";
