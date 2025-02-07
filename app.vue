@@ -1,6 +1,7 @@
 <template>
     <NuxtLayout>
       <NuxtPage />
+      <NuxtLink />
     </NuxtLayout>
 </template>
 
@@ -15,3 +16,8 @@
   filter: grayscale(1);
 }
 </style>
+
+<script setup>
+import { useI18n, useLocalePath } from '#imports'
+// ...
+</script>

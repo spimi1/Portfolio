@@ -1,5 +1,3 @@
 <template>
-  <article class="prose dark:prose-invert max-w-none">   
-      <ContentDoc path="/" />
-  </article>
+  <h1>Hello</h1>
 </template>

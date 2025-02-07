@@ -3,15 +3,15 @@ import { Server } from 'node:http';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { parentPort, threadId } from 'node:worker_threads';
-import { getRequestHeader, splitCookiesString, setResponseStatus, setResponseHeader, send, getRequestHeaders, defineEventHandler, handleCacheHeaders, createEvent, fetchWithEvent, isEvent, eventHandler, getResponseStatus, setResponseHeaders, setHeaders, sendRedirect, proxyRequest, createError, getQuery as getQuery$1, getCookie, createApp, createRouter as createRouter$1, toNodeListener, lazyEventHandler, getRouterParam, readBody, getResponseStatusText } from 'file://C:/Users/micha/portfolio/node_modules/h3/dist/index.mjs';
+import { getRequestHeader, splitCookiesString, setResponseStatus, setResponseHeader, send, getRequestHeaders, defineEventHandler, handleCacheHeaders, createEvent, fetchWithEvent, isEvent, eventHandler, getResponseStatus, setResponseHeaders, setHeaders, sendRedirect, proxyRequest, createError, getQuery as getQuery$1, getRequestURL, getCookie, createApp, createRouter as createRouter$1, toNodeListener, lazyEventHandler, getRouterParam, readBody, getResponseStatusText } from 'file://C:/Users/micha/portfolio/node_modules/h3/dist/index.mjs';
+import _RemarkEmoji from 'file://C:/Users/micha/portfolio/node_modules/remark-emoji/index.js';
 import { visit } from 'file://C:/Users/micha/portfolio/node_modules/unist-util-visit/index.js';
 import { toString } from 'file://C:/Users/micha/portfolio/node_modules/hast-util-to-string/index.js';
 import { createWasmOnigEngine } from 'file://C:/Users/micha/portfolio/node_modules/shiki/dist/engine-oniguruma.mjs';
 import { createStorage, prefixStorage } from 'file://C:/Users/micha/portfolio/node_modules/unstorage/dist/index.mjs';
-import { withQuery, joinURL, withTrailingSlash, parseURL, withoutBase, getQuery, joinRelativeURL, withLeadingSlash, withoutTrailingSlash, isRelative } from 'file://C:/Users/micha/portfolio/node_modules/ufo/dist/index.mjs';
 import { hash } from 'file://C:/Users/micha/portfolio/node_modules/ohash/dist/index.mjs';
 import defu, { defuFn, defu as defu$1 } from 'file://C:/Users/micha/portfolio/node_modules/defu/dist/defu.mjs';
-import { extname } from 'file://C:/Users/micha/portfolio/node_modules/pathe/dist/index.mjs';
+import { basename, extname } from 'file://C:/Users/micha/portfolio/node_modules/pathe/dist/index.mjs';
 import { snakeCase, kebabCase, pascalCase, camelCase } from 'file://C:/Users/micha/portfolio/node_modules/scule/dist/index.mjs';
 import { unified } from 'file://C:/Users/micha/portfolio/node_modules/unified/index.js';
 import { toString as toString$1 } from 'file://C:/Users/micha/portfolio/node_modules/mdast-util-to-string/index.js';
@@ -25,7 +25,6 @@ import slugify from 'file://C:/Users/micha/portfolio/node_modules/slugify/slugif
 import remarkParse from 'file://C:/Users/micha/portfolio/node_modules/remark-parse/index.js';
 import remark2rehype from 'file://C:/Users/micha/portfolio/node_modules/remark-rehype/index.js';
 import remarkMDC, { parseFrontMatter } from 'file://C:/Users/micha/portfolio/node_modules/remark-mdc/dist/index.mjs';
-import remarkEmoji from 'file://C:/Users/micha/portfolio/node_modules/remark-emoji/index.js';
 import remarkGFM from 'file://C:/Users/micha/portfolio/node_modules/remark-gfm/index.js';
 import rehypeExternalLinks from 'file://C:/Users/micha/portfolio/node_modules/rehype-external-links/index.js';
 import rehypeSortAttributeValues from 'file://C:/Users/micha/portfolio/node_modules/rehype-sort-attribute-values/index.js';
@@ -50,8 +49,257 @@ import { getContext } from 'file://C:/Users/micha/portfolio/node_modules/unctx/d
 import { captureRawStackTrace, parseRawStackTrace } from 'file://C:/Users/micha/portfolio/node_modules/errx/dist/index.js';
 import { isVNode, version, unref } from 'file://C:/Users/micha/portfolio/node_modules/vue/index.mjs';
 import unstorage_47drivers_47fs from 'file://C:/Users/micha/portfolio/node_modules/unstorage/drivers/fs.mjs';
+import { getIcons } from 'file://C:/Users/micha/portfolio/node_modules/@iconify/utils/lib/index.mjs';
+import { collections } from 'file://C:/Users/micha/portfolio/.nuxt/nuxt-icon-server-bundle.mjs';
 import { toRouteMatcher, createRouter } from 'file://C:/Users/micha/portfolio/node_modules/radix3/dist/index.mjs';
 import { defineHeadPlugin } from 'file://C:/Users/micha/portfolio/node_modules/@unhead/shared/dist/index.mjs';
+
+const HASH_RE = /#/g;
+const AMPERSAND_RE = /&/g;
+const SLASH_RE = /\//g;
+const EQUAL_RE = /=/g;
+const PLUS_RE = /\+/g;
+const ENC_CARET_RE = /%5e/gi;
+const ENC_BACKTICK_RE = /%60/gi;
+const ENC_PIPE_RE = /%7c/gi;
+const ENC_SPACE_RE = /%20/gi;
+function encode(text) {
+  return encodeURI("" + text).replace(ENC_PIPE_RE, "|");
+}
+function encodeQueryValue(input) {
+  return encode(typeof input === "string" ? input : JSON.stringify(input)).replace(PLUS_RE, "%2B").replace(ENC_SPACE_RE, "+").replace(HASH_RE, "%23").replace(AMPERSAND_RE, "%26").replace(ENC_BACKTICK_RE, "`").replace(ENC_CARET_RE, "^").replace(SLASH_RE, "%2F");
+}
+function encodeQueryKey(text) {
+  return encodeQueryValue(text).replace(EQUAL_RE, "%3D");
+}
+function decode(text = "") {
+  try {
+    return decodeURIComponent("" + text);
+  } catch {
+    return "" + text;
+  }
+}
+function decodeQueryKey(text) {
+  return decode(text.replace(PLUS_RE, " "));
+}
+function decodeQueryValue(text) {
+  return decode(text.replace(PLUS_RE, " "));
+}
+
+function parseQuery(parametersString = "") {
+  const object = {};
+  if (parametersString[0] === "?") {
+    parametersString = parametersString.slice(1);
+  }
+  for (const parameter of parametersString.split("&")) {
+    const s = parameter.match(/([^=]+)=?(.*)/) || [];
+    if (s.length < 2) {
+      continue;
+    }
+    const key = decodeQueryKey(s[1]);
+    if (key === "__proto__" || key === "constructor") {
+      continue;
+    }
+    const value = decodeQueryValue(s[2] || "");
+    if (object[key] === undefined) {
+      object[key] = value;
+    } else if (Array.isArray(object[key])) {
+      object[key].push(value);
+    } else {
+      object[key] = [object[key], value];
+    }
+  }
+  return object;
+}
+function encodeQueryItem(key, value) {
+  if (typeof value === "number" || typeof value === "boolean") {
+    value = String(value);
+  }
+  if (!value) {
+    return encodeQueryKey(key);
+  }
+  if (Array.isArray(value)) {
+    return value.map((_value) => `${encodeQueryKey(key)}=${encodeQueryValue(_value)}`).join("&");
+  }
+  return `${encodeQueryKey(key)}=${encodeQueryValue(value)}`;
+}
+function stringifyQuery(query) {
+  return Object.keys(query).filter((k) => query[k] !== undefined).map((k) => encodeQueryItem(k, query[k])).filter(Boolean).join("&");
+}
+
+const PROTOCOL_STRICT_REGEX = /^[\s\w\0+.-]{2,}:([/\\]{1,2})/;
+const PROTOCOL_REGEX = /^[\s\w\0+.-]{2,}:([/\\]{2})?/;
+const PROTOCOL_RELATIVE_REGEX = /^([/\\]\s*){2,}[^/\\]/;
+const JOIN_LEADING_SLASH_RE = /^\.?\//;
+function isRelative(inputString) {
+  return ["./", "../"].some((string_) => inputString.startsWith(string_));
+}
+function hasProtocol(inputString, opts = {}) {
+  if (typeof opts === "boolean") {
+    opts = { acceptRelative: opts };
+  }
+  if (opts.strict) {
+    return PROTOCOL_STRICT_REGEX.test(inputString);
+  }
+  return PROTOCOL_REGEX.test(inputString) || (opts.acceptRelative ? PROTOCOL_RELATIVE_REGEX.test(inputString) : false);
+}
+function hasTrailingSlash(input = "", respectQueryAndFragment) {
+  {
+    return input.endsWith("/");
+  }
+}
+function withoutTrailingSlash(input = "", respectQueryAndFragment) {
+  {
+    return (hasTrailingSlash(input) ? input.slice(0, -1) : input) || "/";
+  }
+}
+function withTrailingSlash(input = "", respectQueryAndFragment) {
+  {
+    return input.endsWith("/") ? input : input + "/";
+  }
+}
+function hasLeadingSlash(input = "") {
+  return input.startsWith("/");
+}
+function withLeadingSlash(input = "") {
+  return hasLeadingSlash(input) ? input : "/" + input;
+}
+function withoutBase(input, base) {
+  if (isEmptyURL(base)) {
+    return input;
+  }
+  const _base = withoutTrailingSlash(base);
+  if (!input.startsWith(_base)) {
+    return input;
+  }
+  const trimmed = input.slice(_base.length);
+  return trimmed[0] === "/" ? trimmed : "/" + trimmed;
+}
+function withQuery(input, query) {
+  const parsed = parseURL(input);
+  const mergedQuery = { ...parseQuery(parsed.search), ...query };
+  parsed.search = stringifyQuery(mergedQuery);
+  return stringifyParsedURL(parsed);
+}
+function getQuery(input) {
+  return parseQuery(parseURL(input).search);
+}
+function isEmptyURL(url) {
+  return !url || url === "/";
+}
+function isNonEmptyURL(url) {
+  return url && url !== "/";
+}
+function joinURL(base, ...input) {
+  let url = base || "";
+  for (const segment of input.filter((url2) => isNonEmptyURL(url2))) {
+    if (url) {
+      const _segment = segment.replace(JOIN_LEADING_SLASH_RE, "");
+      url = withTrailingSlash(url) + _segment;
+    } else {
+      url = segment;
+    }
+  }
+  return url;
+}
+function joinRelativeURL(..._input) {
+  const JOIN_SEGMENT_SPLIT_RE = /\/(?!\/)/;
+  const input = _input.filter(Boolean);
+  const segments = [];
+  let segmentsDepth = 0;
+  for (const i of input) {
+    if (!i || i === "/") {
+      continue;
+    }
+    for (const [sindex, s] of i.split(JOIN_SEGMENT_SPLIT_RE).entries()) {
+      if (!s || s === ".") {
+        continue;
+      }
+      if (s === "..") {
+        if (segments.length === 1 && hasProtocol(segments[0])) {
+          continue;
+        }
+        segments.pop();
+        segmentsDepth--;
+        continue;
+      }
+      if (sindex === 1 && segments[segments.length - 1]?.endsWith(":/")) {
+        segments[segments.length - 1] += "/" + s;
+        continue;
+      }
+      segments.push(s);
+      segmentsDepth++;
+    }
+  }
+  let url = segments.join("/");
+  if (segmentsDepth >= 0) {
+    if (input[0]?.startsWith("/") && !url.startsWith("/")) {
+      url = "/" + url;
+    } else if (input[0]?.startsWith("./") && !url.startsWith("./")) {
+      url = "./" + url;
+    }
+  } else {
+    url = "../".repeat(-1 * segmentsDepth) + url;
+  }
+  if (input[input.length - 1]?.endsWith("/") && !url.endsWith("/")) {
+    url += "/";
+  }
+  return url;
+}
+
+const protocolRelative = Symbol.for("ufo:protocolRelative");
+function parseURL(input = "", defaultProto) {
+  const _specialProtoMatch = input.match(
+    /^[\s\0]*(blob:|data:|javascript:|vbscript:)(.*)/i
+  );
+  if (_specialProtoMatch) {
+    const [, _proto, _pathname = ""] = _specialProtoMatch;
+    return {
+      protocol: _proto.toLowerCase(),
+      pathname: _pathname,
+      href: _proto + _pathname,
+      auth: "",
+      host: "",
+      search: "",
+      hash: ""
+    };
+  }
+  if (!hasProtocol(input, { acceptRelative: true })) {
+    return parsePath(input);
+  }
+  const [, protocol = "", auth, hostAndPath = ""] = input.replace(/\\/g, "/").match(/^[\s\0]*([\w+.-]{2,}:)?\/\/([^/@]+@)?(.*)/) || [];
+  let [, host = "", path = ""] = hostAndPath.match(/([^#/?]*)(.*)?/) || [];
+  if (protocol === "file:") {
+    path = path.replace(/\/(?=[A-Za-z]:)/, "");
+  }
+  const { pathname, search, hash } = parsePath(path);
+  return {
+    protocol: protocol.toLowerCase(),
+    auth: auth ? auth.slice(0, Math.max(0, auth.length - 1)) : "",
+    host,
+    pathname,
+    search,
+    hash,
+    [protocolRelative]: !protocol
+  };
+}
+function parsePath(input = "") {
+  const [pathname = "", search = "", hash = ""] = (input.match(/([^#?]*)(\?[^#]*)?(#.*)?/) || []).splice(1);
+  return {
+    pathname,
+    search,
+    hash
+  };
+}
+function stringifyParsedURL(parsed) {
+  const pathname = parsed.pathname || "";
+  const search = parsed.search ? (parsed.search.startsWith("?") ? "" : "?") + parsed.search : "";
+  const hash = parsed.hash || "";
+  const auth = parsed.auth ? parsed.auth + "@" : "";
+  const host = parsed.host || "";
+  const proto = parsed.protocol || parsed[protocolRelative] ? (parsed.protocol || "") + "//" : "";
+  return proto + auth + host + pathname + search + hash;
+}
 
 function hasReqHeader(event, name, includes) {
   const value = getRequestHeader(event, name);
@@ -182,7 +430,7 @@ const errorHandler = (async function errorhandler(error, event) {
   for (const [header, value] of res.headers.entries()) {
     setResponseHeader(event, header, value);
   }
-  setResponseStatus(event, res.status && res.status !== 200 ? res.status : void 0, res.statusText);
+  setResponseStatus(event, res.status && res.status !== 200 ? res.status : undefined, res.statusText);
   return send(event, html);
 });
 
@@ -197,7 +445,7 @@ if (!window.__NUXT_DEVTOOLS_TIME_METRIC__) {
 window.__NUXT_DEVTOOLS_TIME_METRIC__.appInit = Date.now()
 `;
 
-const _gA5jEecQkL = (function(nitro) {
+const _82NCVVSV43 = (function(nitro) {
   nitro.hooks.hook("render:html", (htmlContext) => {
     htmlContext.head.push(`<script>${script$1}<\/script>`);
   });
@@ -218,11 +466,11 @@ const appTeleportAttrs = {"id":"teleports"};
 const appId = "nuxt-app";
 
 const devReducers = {
-  VNode: (data) => isVNode(data) ? { type: data.type, props: data.props } : void 0,
-  URL: (data) => data instanceof URL ? data.toString() : void 0
+  VNode: (data) => isVNode(data) ? { type: data.type, props: data.props } : undefined,
+  URL: (data) => data instanceof URL ? data.toString() : undefined
 };
 const asyncContext = getContext("nuxt-dev", { asyncContext: true, AsyncLocalStorage });
-const _syE1tDkzGo = (nitroApp) => {
+const _tb82JTmxjq = (nitroApp) => {
   const handler = nitroApp.h3App.handler;
   nitroApp.h3App.handler = (event) => {
     return asyncContext.callAsync({ logs: [], event }, () => handler(event));
@@ -292,7 +540,226 @@ function onConsoleLog(callback) {
 }
 
 const inlineAppConfig = {
-  "nuxt": {}
+  "nuxt": {},
+  "icon": {
+    "provider": "server",
+    "class": "",
+    "aliases": {},
+    "iconifyApiEndpoint": "https://api.iconify.design",
+    "localApiEndpoint": "/api/_nuxt_icon",
+    "fallbackToApi": true,
+    "cssSelectorPrefix": "i-",
+    "cssWherePseudo": true,
+    "mode": "css",
+    "attrs": {
+      "aria-hidden": true
+    },
+    "collections": [
+      "academicons",
+      "akar-icons",
+      "ant-design",
+      "arcticons",
+      "basil",
+      "bi",
+      "bitcoin-icons",
+      "bpmn",
+      "brandico",
+      "bx",
+      "bxl",
+      "bxs",
+      "bytesize",
+      "carbon",
+      "catppuccin",
+      "cbi",
+      "charm",
+      "ci",
+      "cib",
+      "cif",
+      "cil",
+      "circle-flags",
+      "circum",
+      "clarity",
+      "codicon",
+      "covid",
+      "cryptocurrency",
+      "cryptocurrency-color",
+      "dashicons",
+      "devicon",
+      "devicon-plain",
+      "ei",
+      "el",
+      "emojione",
+      "emojione-monotone",
+      "emojione-v1",
+      "entypo",
+      "entypo-social",
+      "eos-icons",
+      "ep",
+      "et",
+      "eva",
+      "f7",
+      "fa",
+      "fa-brands",
+      "fa-regular",
+      "fa-solid",
+      "fa6-brands",
+      "fa6-regular",
+      "fa6-solid",
+      "fad",
+      "fe",
+      "feather",
+      "file-icons",
+      "flag",
+      "flagpack",
+      "flat-color-icons",
+      "flat-ui",
+      "flowbite",
+      "fluent",
+      "fluent-emoji",
+      "fluent-emoji-flat",
+      "fluent-emoji-high-contrast",
+      "fluent-mdl2",
+      "fontelico",
+      "fontisto",
+      "formkit",
+      "foundation",
+      "fxemoji",
+      "gala",
+      "game-icons",
+      "geo",
+      "gg",
+      "gis",
+      "gravity-ui",
+      "gridicons",
+      "grommet-icons",
+      "guidance",
+      "healthicons",
+      "heroicons",
+      "heroicons-outline",
+      "heroicons-solid",
+      "hugeicons",
+      "humbleicons",
+      "ic",
+      "icomoon-free",
+      "icon-park",
+      "icon-park-outline",
+      "icon-park-solid",
+      "icon-park-twotone",
+      "iconamoon",
+      "iconoir",
+      "icons8",
+      "il",
+      "ion",
+      "iwwa",
+      "jam",
+      "la",
+      "lets-icons",
+      "line-md",
+      "logos",
+      "ls",
+      "lucide",
+      "lucide-lab",
+      "mage",
+      "majesticons",
+      "maki",
+      "map",
+      "marketeq",
+      "material-symbols",
+      "material-symbols-light",
+      "mdi",
+      "mdi-light",
+      "medical-icon",
+      "memory",
+      "meteocons",
+      "mi",
+      "mingcute",
+      "mono-icons",
+      "mynaui",
+      "nimbus",
+      "nonicons",
+      "noto",
+      "noto-v1",
+      "octicon",
+      "oi",
+      "ooui",
+      "openmoji",
+      "oui",
+      "pajamas",
+      "pepicons",
+      "pepicons-pencil",
+      "pepicons-pop",
+      "pepicons-print",
+      "ph",
+      "pixelarticons",
+      "prime",
+      "ps",
+      "quill",
+      "radix-icons",
+      "raphael",
+      "ri",
+      "rivet-icons",
+      "si-glyph",
+      "simple-icons",
+      "simple-line-icons",
+      "skill-icons",
+      "solar",
+      "streamline",
+      "streamline-emojis",
+      "subway",
+      "svg-spinners",
+      "system-uicons",
+      "tabler",
+      "tdesign",
+      "teenyicons",
+      "token",
+      "token-branded",
+      "topcoat",
+      "twemoji",
+      "typcn",
+      "uil",
+      "uim",
+      "uis",
+      "uit",
+      "uiw",
+      "unjs",
+      "vaadin",
+      "vs",
+      "vscode-icons",
+      "websymbol",
+      "weui",
+      "whh",
+      "wi",
+      "wpf",
+      "zmdi",
+      "zondicons"
+    ],
+    "fetchTimeout": 1500
+  },
+  "ui": {
+    "primary": "green",
+    "gray": "cool",
+    "colors": [
+      "red",
+      "orange",
+      "amber",
+      "yellow",
+      "lime",
+      "green",
+      "emerald",
+      "teal",
+      "cyan",
+      "sky",
+      "blue",
+      "indigo",
+      "violet",
+      "purple",
+      "fuchsia",
+      "pink",
+      "rose",
+      "primary"
+    ],
+    "strategy": "merge"
+  }
 };
 
 
@@ -316,7 +783,7 @@ function applyEnv(obj, opts, parentKey = "") {
       if (_isObject(envValue)) {
         obj[key] = { ...obj[key], ...envValue };
         applyEnv(obj[key], opts, subKey);
-      } else if (envValue === void 0) {
+      } else if (envValue === undefined) {
         applyEnv(obj[key], opts, subKey);
       } else {
         obj[key] = envValue ?? obj[key];
@@ -480,6 +947,42 @@ const _inlineRuntimeConfig = {
           1
         ]
       }
+    },
+    "i18n": {
+      "baseUrl": "",
+      "defaultLocale": "pl",
+      "defaultDirection": "ltr",
+      "strategy": "prefix_except_default",
+      "lazy": false,
+      "rootRedirect": "",
+      "routesNameSeparator": "___",
+      "defaultLocaleRouteNameSuffix": "default",
+      "skipSettingLocaleOnNavigate": false,
+      "differentDomains": false,
+      "trailingSlash": false,
+      "locales": [
+        "en",
+        "pl"
+      ],
+      "detectBrowserLanguage": {
+        "alwaysRedirect": false,
+        "cookieCrossOrigin": false,
+        "cookieDomain": "",
+        "cookieKey": "i18n_redirected",
+        "cookieSecure": false,
+        "fallbackLocale": "",
+        "redirectOn": "root",
+        "useCookie": true
+      },
+      "experimental": {
+        "localeDetector": "",
+        "switchLocalePathLinkSSR": false,
+        "autoImportTranslationFunctions": false,
+        "typedPages": true,
+        "typedOptionsAndMessages": false,
+        "generatedLocaleFilePathFormat": "absolute"
+      },
+      "multiDomainLocales": false
     }
   },
   "content": {
@@ -583,6 +1086,9 @@ const _inlineRuntimeConfig = {
       "advanceQuery": false,
       "search": ""
     }
+  },
+  "icon": {
+    "serverKnownCssClasses": []
   }
 };
 const envOptions = {
@@ -605,7 +1111,12 @@ function useRuntimeConfig(event) {
   event.context.nitro.runtimeConfig = runtimeConfig;
   return runtimeConfig;
 }
-_deepFreeze(klona(appConfig));
+const _sharedAppConfig = _deepFreeze(klona(appConfig));
+function useAppConfig(event) {
+  {
+    return _sharedAppConfig;
+  }
+}
 function _deepFreeze(object) {
   const propNames = Object.getOwnPropertyNames(object);
   for (const name of propNames) {
@@ -625,7 +1136,7 @@ new Proxy(/* @__PURE__ */ Object.create(null), {
     if (prop in runtimeConfig) {
       return runtimeConfig[prop];
     }
-    return void 0;
+    return undefined;
   }
 });
 
@@ -671,7 +1182,7 @@ function defineCachedFunction(fn, opts = {}) {
   const group = opts.group || "nitro/functions";
   const name = opts.name || fn.name || "_";
   const integrity = opts.integrity || hash([fn, opts]);
-  const validate = opts.validate || ((entry) => entry.value !== void 0);
+  const validate = opts.validate || ((entry) => entry.value !== undefined);
   async function get(key, resolver, shouldInvalidateCache, event) {
     const cacheKey = [opts.base, group, name, key + ".json"].filter(Boolean).join(":").replace(/:\/$/, ":index");
     let entry = await useStorage().getItem(cacheKey).catch((error) => {
@@ -692,11 +1203,11 @@ function defineCachedFunction(fn, opts = {}) {
     const _resolve = async () => {
       const isPending = pending[key];
       if (!isPending) {
-        if (entry.value !== void 0 && (opts.staleMaxAge || 0) >= 0 && opts.swr === false) {
-          entry.value = void 0;
-          entry.integrity = void 0;
-          entry.mtime = void 0;
-          entry.expires = void 0;
+        if (entry.value !== undefined && (opts.staleMaxAge || 0) >= 0 && opts.swr === false) {
+          entry.value = undefined;
+          entry.integrity = undefined;
+          entry.mtime = undefined;
+          entry.expires = undefined;
         }
         pending[key] = Promise.resolve(resolver());
       }
@@ -728,7 +1239,7 @@ function defineCachedFunction(fn, opts = {}) {
       }
     };
     const _resolvePromise = expired ? _resolve() : Promise.resolve();
-    if (entry.value === void 0) {
+    if (entry.value === undefined) {
       await _resolvePromise;
     } else if (expired && event && event.waitUntil) {
       event.waitUntil(_resolvePromise);
@@ -753,7 +1264,7 @@ function defineCachedFunction(fn, opts = {}) {
       key,
       () => fn(...args),
       shouldInvalidateCache,
-      args[0] && isEvent(args[0]) ? args[0] : void 0
+      args[0] && isEvent(args[0]) ? args[0] : undefined
     );
     let value = entry.value;
     if (opts.transform) {
@@ -798,7 +1309,7 @@ function defineCachedEventHandler(handler, opts = defaultCacheOptions()) {
       if (entry.value.code >= 400) {
         return false;
       }
-      if (entry.value.body === void 0) {
+      if (entry.value.body === undefined) {
         return false;
       }
       if (entry.value.headers.etag === "undefined" || entry.value.headers["last-modified"] === "undefined") {
@@ -814,7 +1325,7 @@ function defineCachedEventHandler(handler, opts = defaultCacheOptions()) {
       const variableHeaders = {};
       for (const header of variableHeaderNames) {
         const value = incomingEvent.node.req.headers[header];
-        if (value !== void 0) {
+        if (value !== undefined) {
           variableHeaders[header] = value;
         }
       }
@@ -865,7 +1376,7 @@ function defineCachedEventHandler(handler, opts = defaultCacheOptions()) {
             _resSendBody = chunk;
           }
           if (typeof arg2 === "function") {
-            arg2(void 0);
+            arg2(undefined);
           }
           if (typeof arg3 === "function") {
             arg3();
@@ -880,7 +1391,7 @@ function defineCachedEventHandler(handler, opts = defaultCacheOptions()) {
             }
             for (const header in headers2) {
               const value = headers2[header];
-              if (value !== void 0) {
+              if (value !== undefined) {
                 this.setHeader(
                   header,
                   value
@@ -964,7 +1475,7 @@ function defineCachedEventHandler(handler, opts = defaultCacheOptions()) {
           splitCookiesString(value)
         );
       } else {
-        if (value !== void 0) {
+        if (value !== undefined) {
           event.node.res.setHeader(name, value);
         }
       }
@@ -995,7 +1506,7 @@ function defineRenderHandler(render) {
   const runtimeConfig = useRuntimeConfig();
   return eventHandler(async (event) => {
     const nitroApp = useNitroApp();
-    const ctx = { event, render, response: void 0 };
+    const ctx = { event, render, response: undefined };
     await nitroApp.hooks.callHook("render:before", ctx);
     if (!ctx.response) {
       if (event.path === `${runtimeConfig.app.baseURL}favicon.ico`) {
@@ -1088,7 +1599,7 @@ function getRouteRulesForPath(path) {
   return defu({}, ..._routeRulesMatcher.matchAll(path).reverse());
 }
 
-const r=Object.create(null),E=e=>globalThis.process?.env||globalThis._importMeta_.env||globalThis.Deno?.env.toObject()||globalThis.__env__||(e?r:globalThis),s=new Proxy(r,{get(e,o){return E()[o]??r[o]},has(e,o){const i=E();return o in i||o in r},set(e,o,i){const g=E(!0);return g[o]=i,!0},deleteProperty(e,o){if(!o)return !1;const i=E(!0);return delete i[o],!0},ownKeys(){const e=E(!0);return Object.keys(e)}}),t=typeof process<"u"&&process.env&&"development"||"",p=[["APPVEYOR"],["AWS_AMPLIFY","AWS_APP_ID",{ci:!0}],["AZURE_PIPELINES","SYSTEM_TEAMFOUNDATIONCOLLECTIONURI"],["AZURE_STATIC","INPUT_AZURE_STATIC_WEB_APPS_API_TOKEN"],["APPCIRCLE","AC_APPCIRCLE"],["BAMBOO","bamboo_planKey"],["BITBUCKET","BITBUCKET_COMMIT"],["BITRISE","BITRISE_IO"],["BUDDY","BUDDY_WORKSPACE_ID"],["BUILDKITE"],["CIRCLE","CIRCLECI"],["CIRRUS","CIRRUS_CI"],["CLOUDFLARE_PAGES","CF_PAGES",{ci:!0}],["CODEBUILD","CODEBUILD_BUILD_ARN"],["CODEFRESH","CF_BUILD_ID"],["DRONE"],["DRONE","DRONE_BUILD_EVENT"],["DSARI"],["GITHUB_ACTIONS"],["GITLAB","GITLAB_CI"],["GITLAB","CI_MERGE_REQUEST_ID"],["GOCD","GO_PIPELINE_LABEL"],["LAYERCI"],["HUDSON","HUDSON_URL"],["JENKINS","JENKINS_URL"],["MAGNUM"],["NETLIFY"],["NETLIFY","NETLIFY_LOCAL",{ci:!1}],["NEVERCODE"],["RENDER"],["SAIL","SAILCI"],["SEMAPHORE"],["SCREWDRIVER"],["SHIPPABLE"],["SOLANO","TDDIUM"],["STRIDER"],["TEAMCITY","TEAMCITY_VERSION"],["TRAVIS"],["VERCEL","NOW_BUILDER"],["VERCEL","VERCEL",{ci:!1}],["VERCEL","VERCEL_ENV",{ci:!1}],["APPCENTER","APPCENTER_BUILD_ID"],["CODESANDBOX","CODESANDBOX_SSE",{ci:!1}],["STACKBLITZ"],["STORMKIT"],["CLEAVR"],["ZEABUR"],["CODESPHERE","CODESPHERE_APP_ID",{ci:!0}],["RAILWAY","RAILWAY_PROJECT_ID"],["RAILWAY","RAILWAY_SERVICE_ID"]];function B(){if(globalThis.process?.env)for(const e of p){const o=e[1]||e[0];if(globalThis.process?.env[o])return {name:e[0].toLowerCase(),...e[2]}}return globalThis.process?.env?.SHELL==="/bin/jsh"&&globalThis.process?.versions?.webcontainer?{name:"stackblitz",ci:!1}:{name:"",ci:!1}}const l=B(),d=l.name;function n(e){return e?e!=="false":!1}const I=globalThis.process?.platform||"",T=n(s.CI)||l.ci!==!1,R=n(globalThis.process?.stdout&&globalThis.process?.stdout.isTTY);n(s.DEBUG);const C=t==="test"||n(s.TEST);n(s.MINIMAL)||T||C||!R;const a=/^win/i.test(I);!n(s.NO_COLOR)&&(n(s.FORCE_COLOR)||(R||a)&&s.TERM!=="dumb"||T);const _=(globalThis.process?.versions?.node||"").replace(/^v/,"")||null;Number(_?.split(".")[0])||null;const W=globalThis.process||Object.create(null),c={versions:{}};new Proxy(W,{get(e,o){if(o==="env")return s;if(o in e)return e[o];if(o in c)return c[o]}});const A=globalThis.process?.release?.name==="node",L=!!globalThis.Bun||!!globalThis.process?.versions?.bun,D=!!globalThis.Deno,O=!!globalThis.fastly,S=!!globalThis.Netlify,N=!!globalThis.EdgeRuntime,u=globalThis.navigator?.userAgent==="Cloudflare-Workers",b=!!globalThis.__lagon__,F=[[S,"netlify"],[N,"edge-light"],[u,"workerd"],[O,"fastly"],[D,"deno"],[L,"bun"],[A,"node"],[b,"lagon"]];function G(){const e=F.find(o=>o[0]);if(e)return {name:e[1]}}const P=G();P?.name||"";
+const r=Object.create(null),i=e=>globalThis.process?.env||globalThis._importMeta_.env||globalThis.Deno?.env.toObject()||globalThis.__env__||(e?r:globalThis),s=new Proxy(r,{get(e,o){return i()[o]??r[o]},has(e,o){const E=i();return o in E||o in r},set(e,o,E){const b=i(true);return b[o]=E,true},deleteProperty(e,o){if(!o)return  false;const E=i(true);return delete E[o],true},ownKeys(){const e=i(true);return Object.keys(e)}}),t=typeof process<"u"&&process.env&&"development"||"",B=[["APPVEYOR"],["AWS_AMPLIFY","AWS_APP_ID",{ci:true}],["AZURE_PIPELINES","SYSTEM_TEAMFOUNDATIONCOLLECTIONURI"],["AZURE_STATIC","INPUT_AZURE_STATIC_WEB_APPS_API_TOKEN"],["APPCIRCLE","AC_APPCIRCLE"],["BAMBOO","bamboo_planKey"],["BITBUCKET","BITBUCKET_COMMIT"],["BITRISE","BITRISE_IO"],["BUDDY","BUDDY_WORKSPACE_ID"],["BUILDKITE"],["CIRCLE","CIRCLECI"],["CIRRUS","CIRRUS_CI"],["CLOUDFLARE_PAGES","CF_PAGES",{ci:true}],["CODEBUILD","CODEBUILD_BUILD_ARN"],["CODEFRESH","CF_BUILD_ID"],["DRONE"],["DRONE","DRONE_BUILD_EVENT"],["DSARI"],["GITHUB_ACTIONS"],["GITLAB","GITLAB_CI"],["GITLAB","CI_MERGE_REQUEST_ID"],["GOCD","GO_PIPELINE_LABEL"],["LAYERCI"],["HUDSON","HUDSON_URL"],["JENKINS","JENKINS_URL"],["MAGNUM"],["NETLIFY"],["NETLIFY","NETLIFY_LOCAL",{ci:false}],["NEVERCODE"],["RENDER"],["SAIL","SAILCI"],["SEMAPHORE"],["SCREWDRIVER"],["SHIPPABLE"],["SOLANO","TDDIUM"],["STRIDER"],["TEAMCITY","TEAMCITY_VERSION"],["TRAVIS"],["VERCEL","NOW_BUILDER"],["VERCEL","VERCEL",{ci:false}],["VERCEL","VERCEL_ENV",{ci:false}],["APPCENTER","APPCENTER_BUILD_ID"],["CODESANDBOX","CODESANDBOX_SSE",{ci:false}],["STACKBLITZ"],["STORMKIT"],["CLEAVR"],["ZEABUR"],["CODESPHERE","CODESPHERE_APP_ID",{ci:true}],["RAILWAY","RAILWAY_PROJECT_ID"],["RAILWAY","RAILWAY_SERVICE_ID"],["DENO-DEPLOY","DENO_DEPLOYMENT_ID"],["FIREBASE_APP_HOSTING","FIREBASE_APP_HOSTING",{ci:true}]];function p(){if(globalThis.process?.env)for(const e of B){const o=e[1]||e[0];if(globalThis.process?.env[o])return {name:e[0].toLowerCase(),...e[2]}}return globalThis.process?.env?.SHELL==="/bin/jsh"&&globalThis.process?.versions?.webcontainer?{name:"stackblitz",ci:false}:{name:"",ci:false}}const l=p(),d=l.name;function n(e){return e?e!=="false":false}const I=globalThis.process?.platform||"",T=n(s.CI)||l.ci!==false,R=n(globalThis.process?.stdout&&globalThis.process?.stdout.isTTY);n(s.DEBUG);const A=t==="test"||n(s.TEST);n(s.MINIMAL)||T||A||!R;const _=/^win/i.test(I);!n(s.NO_COLOR)&&(n(s.FORCE_COLOR)||(R||_)&&s.TERM!=="dumb"||T);const C=(globalThis.process?.versions?.node||"").replace(/^v/,"")||null;Number(C?.split(".")[0])||null;const y=globalThis.process||Object.create(null),c={versions:{}};new Proxy(y,{get(e,o){if(o==="env")return s;if(o in e)return e[o];if(o in c)return c[o]}});const L=globalThis.process?.release?.name==="node",a=!!globalThis.Bun||!!globalThis.process?.versions?.bun,D=!!globalThis.Deno,O=!!globalThis.fastly,S=!!globalThis.Netlify,N=!!globalThis.EdgeRuntime,P=globalThis.navigator?.userAgent==="Cloudflare-Workers",F=[[S,"netlify"],[N,"edge-light"],[P,"workerd"],[O,"fastly"],[D,"deno"],[a,"bun"],[L,"node"]];function G(){const e=F.find(o=>o[0]);if(e)return {name:e[1]}}const u=G();u?.name||"";
 
 const scheduledTasks = false;
 
@@ -1205,10 +1716,10 @@ function emphasis(state, node) {
 function parseThematicBlock(lang) {
   if (!lang?.trim()) {
     return {
-      language: void 0,
-      highlights: void 0,
-      filename: void 0,
-      meta: void 0
+      language: undefined,
+      highlights: undefined,
+      filename: undefined,
+      meta: undefined
     };
   }
   const languageMatches = lang.replace(/[{|[](.+)/, "").match(/^[^ \t]+(?=[ \t]|$)/);
@@ -1216,10 +1727,10 @@ function parseThematicBlock(lang) {
   const filenameMatches = lang.match(/\[((\\\]|[^\]])*)\]/);
   const meta = lang.replace(languageMatches?.[0] ?? "", "").replace(highlightTokensMatches?.[0] ?? "", "").replace(filenameMatches?.[0] ?? "", "").trim();
   return {
-    language: languageMatches?.[0] || void 0,
-    highlights: parseHighlightedLines(highlightTokensMatches?.[1] || void 0),
+    language: languageMatches?.[0] || undefined,
+    highlights: parseHighlightedLines(highlightTokensMatches?.[1] || undefined),
     // https://github.com/nuxt/content/pull/2169
-    filename: filenameMatches?.[1].replace(/\\\]/g, "]") || void 0,
+    filename: filenameMatches?.[1].replace(/\\\]/g, "]") || undefined,
     meta
   };
 }
@@ -1228,7 +1739,7 @@ function parseHighlightedLines(lines) {
     const [start, end] = line.trim().split("-").map((a) => Number(a.trim()));
     return Array.from({ length: (end || start) - start + 1 }).map((_, i) => start + i);
   });
-  return lineArray.length ? lineArray : void 0;
+  return lineArray.length ? lineArray : undefined;
 }
 const TAG_NAME_REGEXP = /^<\/?([\w-]+)(\s[^>]*?)?\/?>/;
 function getTagName(value) {
@@ -1278,7 +1789,7 @@ function html(state, node) {
     state.patch(node, result);
     return state.applyData(node, result);
   }
-  return void 0;
+  return undefined;
 }
 
 function link$1(state, node) {
@@ -1286,7 +1797,7 @@ function link$1(state, node) {
     ...node.attributes || {},
     href: normalizeUri(node.url)
   };
-  if (node.title !== null && node.title !== void 0) {
+  if (node.title !== null && node.title !== undefined) {
     properties.title = node.title;
   }
   const result = {
@@ -1465,10 +1976,10 @@ function paragraph(state, node) {
 
 function image(state, node) {
   const properties = { ...node.attributes, src: normalizeUri(node.url) };
-  if (node.alt !== null && node.alt !== void 0) {
+  if (node.alt !== null && node.alt !== undefined) {
     properties.alt = node.alt;
   }
-  if (node.title !== null && node.title !== void 0) {
+  if (node.title !== null && node.title !== undefined) {
     properties.title = node.title;
   }
   const result = { type: "element", tagName: "img", properties, children: [] };
@@ -1543,9 +2054,6 @@ const defaults$1 = {
     plugins: {
       "remark-mdc": {
         instance: remarkMDC
-      },
-      "remark-emoji": {
-        instance: remarkEmoji
       },
       "remark-gfm": {
         instance: remarkGFM
@@ -1767,7 +2275,7 @@ function compileHast(options = {}) {
   }
   this.Compiler = (tree) => {
     const body = compileToJSON(tree);
-    let excerpt = void 0;
+    let excerpt = undefined;
     const excerptIndex = tree.children.findIndex((node) => node.type === "comment" && node.value?.trim() === "more");
     if (excerptIndex !== -1) {
       excerpt = compileToJSON({
@@ -1802,7 +2310,7 @@ const createMarkdownParser = async (inlineOptions = {}) => {
     ...generatedMdcConfigs || [],
     ...inlineOptions.configs || []
   ];
-  if (inlineOptions.highlight != null && inlineOptions.highlight != false && inlineOptions.highlight.highlighter !== void 0 && typeof inlineOptions.highlight.highlighter !== "function") {
+  if (inlineOptions.highlight != null && inlineOptions.highlight != false && inlineOptions.highlight.highlighter !== undefined && typeof inlineOptions.highlight.highlighter !== "function") {
     console.warn("[@nuxtjs/mdc] `highlighter` passed to `parseMarkdown` is should be a function, but got " + JSON.stringify(inlineOptions.highlight.highlighter) + ", ignored.");
     inlineOptions = {
       ...inlineOptions,
@@ -1841,9 +2349,9 @@ const createMarkdownParser = async (inlineOptions = {}) => {
   for (const config of mdcConfigs$1) {
     processor = await config.unified?.post?.(processor) || processor;
   }
-  return async (md) => {
+  return async function parse(md, { fileOptions } = {}) {
     const { content, data: frontmatter } = await parseFrontMatter(md);
-    const processedFile = await processor.process({ value: content, data: frontmatter });
+    const processedFile = await processor.process({ ...fileOptions, value: content, data: frontmatter });
     const result = processedFile.result;
     const data = Object.assign(
       contentHeading(result.body),
@@ -1863,9 +2371,9 @@ const createMarkdownParser = async (inlineOptions = {}) => {
     };
   };
 };
-const parseMarkdown = async (md, inlineOptions = {}) => {
-  const parser = await createMarkdownParser(inlineOptions);
-  return parser(md);
+const parseMarkdown = async (md, markdownParserOptions = {}, parseOptions = {}) => {
+  const parser = await createMarkdownParser(markdownParserOptions);
+  return parser(md, parseOptions);
 };
 function contentHeading(body) {
   let title = "";
@@ -1885,7 +2393,7 @@ function contentHeading(body) {
   };
 }
 
-const _VDviyvkO38 = defineNitroPlugin(async (nitro) => {
+const _W8T5TiiHpP = defineNitroPlugin(async (nitro) => {
   const { cleanCachedContents } = await Promise.resolve().then(function () { return storage; });
   const storage$1 = useStorage();
   const unwatch = await storage$1.watch(async (event, key) => {
@@ -1909,13 +2417,13 @@ const _GhaHjYPnWk = (function(nitro) {
 });
 
 const plugins = [
-  _gA5jEecQkL,
-_syE1tDkzGo,
-_VDviyvkO38,
+  _82NCVVSV43,
+_tb82JTmxjq,
+_W8T5TiiHpP,
 _GhaHjYPnWk
 ];
 
-const _diqZlB = eventHandler(async (event) => {
+const _nXVckO = eventHandler(async (event) => {
   const { code, lang, theme: themeString, options: optionsStr } = getQuery$1(event);
   const theme = JSON.parse(themeString);
   const options = optionsStr ? JSON.parse(optionsStr) : {};
@@ -1923,7 +2431,67 @@ const _diqZlB = eventHandler(async (event) => {
   return await highlighter(code, lang, theme, options);
 });
 
-const _yeREV5 = defineEventHandler(async (event) => {
+const warnOnceSet = /* @__PURE__ */ new Set();
+const DEFAULT_ENDPOINT = "https://api.iconify.design";
+const _eBCcYS = defineCachedEventHandler(async (event) => {
+  const url = getRequestURL(event);
+  if (!url)
+    return createError({ status: 400, message: "Invalid icon request" });
+  const options = useAppConfig().icon;
+  const collectionName = event.context.params?.collection?.replace(/\.json$/, "");
+  const collection = collectionName ? await collections[collectionName]?.() : null;
+  const apiEndPoint = options.iconifyApiEndpoint || DEFAULT_ENDPOINT;
+  const icons = url.searchParams.get("icons")?.split(",");
+  if (collection) {
+    if (icons?.length) {
+      const data = getIcons(
+        collection,
+        icons
+      );
+      consola.debug(`[Icon] serving ${(icons || []).map((i) => "`" + collectionName + ":" + i + "`").join(",")} from bundled collection`);
+      return data;
+    }
+  } else {
+    if (collectionName && !warnOnceSet.has(collectionName) && apiEndPoint === DEFAULT_ENDPOINT) {
+      consola.warn([
+        `[Icon] Collection \`${collectionName}\` is not found locally`,
+        `We suggest to install it via \`npm i -D @iconify-json/${collectionName}\` to provide the best end-user experience.`
+      ].join("\n"));
+      warnOnceSet.add(collectionName);
+    }
+  }
+  if (options.fallbackToApi === true || options.fallbackToApi === "server-only") {
+    const apiUrl = new URL("./" + basename(url.pathname) + url.search, apiEndPoint);
+    consola.debug(`[Icon] fetching ${(icons || []).map((i) => "`" + collectionName + ":" + i + "`").join(",")} from iconify api`);
+    if (apiUrl.host !== new URL(apiEndPoint).host) {
+      return createError({ status: 400, message: "Invalid icon request" });
+    }
+    try {
+      const data = await $fetch(apiUrl.href);
+      return data;
+    } catch (e) {
+      consola.error(e);
+      if (e.status === 404)
+        return createError({ status: 404 });
+      else
+        return createError({ status: 500, message: "Failed to fetch fallback icon" });
+    }
+  }
+  return createError({ status: 404 });
+}, {
+  group: "nuxt",
+  name: "icon",
+  getKey(event) {
+    const collection = event.context.params?.collection?.replace(/\.json$/, "") || "unknown";
+    const icons = String(getQuery$1(event).icons || "");
+    return `${collection}_${icons.split(",")[0]}_${icons.length}_${hash(icons)}`;
+  },
+  swr: true,
+  maxAge: 60 * 60 * 24 * 7
+  // 1 week
+});
+
+const _EnnCnx = defineEventHandler(async (event) => {
   const { getContentQuery } = await Promise.resolve().then(function () { return query; });
   const { serverQueryContent } = await Promise.resolve().then(function () { return storage; });
   const query$1 = getContentQuery(event);
@@ -1954,7 +2522,7 @@ const _yeREV5 = defineEventHandler(async (event) => {
   return serverQueryContent(event, query$1).find();
 });
 
-const _YpPkmm = defineEventHandler(async (event) => {
+const _007Isq = defineEventHandler(async (event) => {
   const { getContentIndex } = await Promise.resolve().then(function () { return contentIndex; });
   const { cacheStorage, serverQueryContent } = await Promise.resolve().then(function () { return storage; });
   const { content } = useRuntimeConfig();
@@ -1980,7 +2548,7 @@ const getPreview = (event) => {
   return { key };
 };
 
-const _WOcRMt = defineEventHandler(async (event) => {
+const _8YSHyl = defineEventHandler(async (event) => {
   const { getContentQuery } = await Promise.resolve().then(function () { return query; });
   const { cacheStorage, serverQueryContent } = await Promise.resolve().then(function () { return storage; });
   const { createNav } = await Promise.resolve().then(function () { return navigation; });
@@ -2005,10 +2573,10 @@ const _WOcRMt = defineEventHandler(async (event) => {
     }
   }).find();
   const _locale = (query$1?.where || []).find((w) => w._locale)?._locale;
-  const dirConfigs = await serverQueryContent(event, _locale ? { where: [{ _locale }] } : void 0).where({ _path: /\/_dir$/i, _partial: true }).find();
+  const dirConfigs = await serverQueryContent(event, _locale ? { where: [{ _locale }] } : undefined).where({ _path: /\/_dir$/i, _partial: true }).find();
   const configs = (dirConfigs?.result || dirConfigs).reduce((configs2, conf) => {
     if (conf.title?.toLowerCase() === "dir") {
-      conf.title = void 0;
+      conf.title = undefined;
     }
     const key = conf._path.split("/").slice(0, -1).join("/") || "/";
     configs2[key] = {
@@ -2022,20 +2590,21 @@ const _WOcRMt = defineEventHandler(async (event) => {
 });
 
 const _lazy_Y1tems = () => Promise.resolve().then(function () { return sitemap_xml$1; });
-const _lazy_uNfeLf = () => Promise.resolve().then(function () { return renderer$1; });
+const _lazy_ubPChw = () => Promise.resolve().then(function () { return renderer$1; });
 
 const handlers = [
   { route: '/sitemap.xml', handler: _lazy_Y1tems, lazy: true, middleware: false, method: undefined },
-  { route: '/__nuxt_error', handler: _lazy_uNfeLf, lazy: true, middleware: false, method: undefined },
-  { route: '/api/_mdc/highlight', handler: _diqZlB, lazy: false, middleware: false, method: undefined },
-  { route: '/api/_content/query/:qid/**:params', handler: _yeREV5, lazy: false, middleware: false, method: "get" },
-  { route: '/api/_content/query/:qid', handler: _yeREV5, lazy: false, middleware: false, method: "get" },
-  { route: '/api/_content/query', handler: _yeREV5, lazy: false, middleware: false, method: "get" },
-  { route: '/api/_content/cache.json', handler: _YpPkmm, lazy: false, middleware: false, method: "get" },
-  { route: '/api/_content/navigation/:qid/**:params', handler: _WOcRMt, lazy: false, middleware: false, method: "get" },
-  { route: '/api/_content/navigation/:qid', handler: _WOcRMt, lazy: false, middleware: false, method: "get" },
-  { route: '/api/_content/navigation', handler: _WOcRMt, lazy: false, middleware: false, method: "get" },
-  { route: '/**', handler: _lazy_uNfeLf, lazy: true, middleware: false, method: undefined }
+  { route: '/__nuxt_error', handler: _lazy_ubPChw, lazy: true, middleware: false, method: undefined },
+  { route: '/api/_mdc/highlight', handler: _nXVckO, lazy: false, middleware: false, method: undefined },
+  { route: '/api/_nuxt_icon/:collection', handler: _eBCcYS, lazy: false, middleware: false, method: undefined },
+  { route: '/api/_content/query/:qid/**:params', handler: _EnnCnx, lazy: false, middleware: false, method: "get" },
+  { route: '/api/_content/query/:qid', handler: _EnnCnx, lazy: false, middleware: false, method: "get" },
+  { route: '/api/_content/query', handler: _EnnCnx, lazy: false, middleware: false, method: "get" },
+  { route: '/api/_content/cache.json', handler: _007Isq, lazy: false, middleware: false, method: "get" },
+  { route: '/api/_content/navigation/:qid/**:params', handler: _8YSHyl, lazy: false, middleware: false, method: "get" },
+  { route: '/api/_content/navigation/:qid', handler: _8YSHyl, lazy: false, middleware: false, method: "get" },
+  { route: '/api/_content/navigation', handler: _8YSHyl, lazy: false, middleware: false, method: "get" },
+  { route: '/**', handler: _lazy_ubPChw, lazy: true, middleware: false, method: undefined }
 ];
 
 function createNitroApp() {
@@ -2172,7 +2741,7 @@ function getAddress() {
     return 0;
   }
   const socketName = `worker-${process.pid}-${threadId}.sock`;
-  if (a) {
+  if (_) {
     return join(String.raw`\\.\pipe\nitro`, socketName);
   }
   const socketDir = join(tmpdir(), "nitro");
@@ -2317,6 +2886,7 @@ function rehypeHighlight(opts = {}) {
 }
 
 const remarkPlugins = {
+  'remark-emoji': { instance: _RemarkEmoji },
 };
 
 const rehypePlugins = {
@@ -2387,7 +2957,7 @@ const sortList = (data, params) => {
     data = data.sort((a, b) => {
       const values = [get(a, key), get(b, key)].map((value) => {
         if (value === null) {
-          return void 0;
+          return undefined;
         }
         if (value instanceof Date) {
           return value.toISOString();
@@ -2408,7 +2978,7 @@ const assertArray = (value, message = "Expected an array") => {
   }
 };
 const ensureArray = (value) => {
-  return Array.isArray(value) ? value : [void 0, null].includes(value) ? [] : [value];
+  return Array.isArray(value) ? value : [undefined, null].includes(value) ? [] : [value];
 };
 
 const arrayParams = ["sort", "where", "only", "without"];
@@ -2934,7 +3504,7 @@ const initialPoint = {
 const fromCSV = function(value, encoding, options) {
   if (typeof encoding !== "string") {
     options = encoding;
-    encoding = void 0;
+    encoding = undefined;
   }
   return compiler()(
     postprocess(
@@ -2991,7 +3561,7 @@ function compiler() {
     if (tokenStack.length > 0) {
       const tail = tokenStack[tokenStack.length - 1];
       const handler = tail[1] || defaultOnError;
-      handler.call(context, void 0, tail[0]);
+      handler.call(context, undefined, tail[0]);
     }
     tree.position = {
       start: point(
@@ -3233,8 +3803,8 @@ const markdown = defineTransformer({
     const highlightOptions = options.highlight ? {
       ...options.highlight,
       // Pass only when it's an function. String values are handled by `@nuxtjs/mdc`
-      highlighter: typeof options.highlight?.highlighter === "function" ? options.highlight.highlighter : void 0
-    } : void 0;
+      highlighter: typeof options.highlight?.highlighter === "function" ? options.highlight.highlighter : undefined
+    } : undefined;
     const parsed = await parseMarkdown(content, {
       ...config,
       highlight: highlightOptions,
@@ -3285,7 +3855,7 @@ function link(state, node) {
     ...node.attributes || {},
     href: normalizeUri(normalizeLink(node.url))
   };
-  if (node.title !== null && node.title !== void 0) {
+  if (node.title !== null && node.title !== undefined) {
     properties.title = node.title;
   }
   const result = {
@@ -4268,7 +4838,7 @@ function createNav(contents, configs) {
   }, []);
   return sortAndClear(nav);
 }
-const collator = new Intl.Collator(void 0, { numeric: true, sensitivity: "base" });
+const collator = new Intl.Collator(undefined, { numeric: true, sensitivity: "base" });
 function sortAndClear(nav) {
   nav.forEach((item) => {
     item._file = item._file.split(".").slice(0, -1).join(".");
@@ -4287,7 +4857,7 @@ function sortAndClear(nav) {
 function pick(keys) {
   return (obj) => {
     obj = obj || {};
-    if (keys && keys.length) {
+    if (keys.length) {
       return keys.filter((key) => typeof obj[key] !== "undefined").reduce((newObj, key) => Object.assign(newObj, { [key]: obj[key] }), {});
     }
     return obj;
@@ -4446,7 +5016,7 @@ const ISLAND_SUFFIX_RE = /\.json(\?.*)?$/;
 async function getIslandContext(event) {
   let url = event.path || "";
   const componentParts = url.substring("/__nuxt_island".length + 1).replace(ISLAND_SUFFIX_RE, "").split("_");
-  const hashId = componentParts.length > 1 ? componentParts.pop() : void 0;
+  const hashId = componentParts.length > 1 ? componentParts.pop() : undefined;
   const componentName = componentParts.join("_");
   const context = event.method === "GET" ? getQuery$1(event) : await readBody(event);
   const ctx = {
@@ -4480,7 +5050,7 @@ const renderer = defineRenderHandler(async (event) => {
     });
   }
   const isRenderingIsland = event.path.startsWith("/__nuxt_island");
-  const islandContext = isRenderingIsland ? await getIslandContext(event) : void 0;
+  const islandContext = isRenderingIsland ? await getIslandContext(event) : undefined;
   let url = ssrError?.url || islandContext?.url || event.path;
   const isRenderingPayload = PAYLOAD_URL_RE.test(url) && !isRenderingIsland;
   if (isRenderingPayload) {
@@ -4503,7 +5073,7 @@ const renderer = defineRenderHandler(async (event) => {
     noSSR: event.context.nuxt?.noSSR || routeOptions.ssr === false && !isRenderingIsland || (false),
     head,
     error: !!ssrError,
-    nuxt: void 0,
+    nuxt: undefined,
     /* NuxtApp */
     payload: ssrError ? { error: ssrError } : {},
     _payloadReducers: /* @__PURE__ */ Object.create(null),
@@ -4536,7 +5106,7 @@ const renderer = defineRenderHandler(async (event) => {
   if (inlinedStyles.length) {
     head.push({ style: inlinedStyles });
   }
-  if (!isRenderingIsland || true) {
+  {
     const link = [];
     for (const resource of Object.values(styles)) {
       if ("inline" in getQuery(resource.file)) {
@@ -4724,7 +5294,7 @@ const SSR_CLIENT_TELEPORT_MARKER = /^uid=([^;]*);client=(.*)$/;
 const SSR_CLIENT_SLOT_MARKER = /^island-slot=[^;]*;(.*)$/;
 function getSlotIslandResponse(ssrContext) {
   if (!ssrContext.islandContext || !Object.keys(ssrContext.islandContext.slots).length) {
-    return void 0;
+    return undefined;
   }
   const response = {};
   for (const [name, slot] of Object.entries(ssrContext.islandContext.slots)) {
@@ -4737,7 +5307,7 @@ function getSlotIslandResponse(ssrContext) {
 }
 function getClientIslandResponse(ssrContext) {
   if (!ssrContext.islandContext || !Object.keys(ssrContext.islandContext.components).length) {
-    return void 0;
+    return undefined;
   }
   const response = {};
   for (const [clientUid, component] of Object.entries(ssrContext.islandContext.components)) {

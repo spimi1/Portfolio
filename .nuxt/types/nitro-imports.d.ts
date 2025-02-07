@@ -1,6 +1,6 @@
 declare global {
-  const __buildAssetsURL: typeof import('../../node_modules/nuxt/dist/core/runtime/nitro/paths')['buildAssetsURL']
-  const __publicAssetsURL: typeof import('../../node_modules/nuxt/dist/core/runtime/nitro/paths')['publicAssetsURL']
+  const __buildAssetsURL: typeof import('../../../node_modules/nuxt/dist/core/runtime/nitro/paths')['buildAssetsURL']
+  const __publicAssetsURL: typeof import('../../../node_modules/nuxt/dist/core/runtime/nitro/paths')['publicAssetsURL']
   const appendCorsHeaders: typeof import('../../node_modules/h3')['appendCorsHeaders']
   const appendCorsPreflightHeaders: typeof import('../../node_modules/h3')['appendCorsPreflightHeaders']
   const appendHeader: typeof import('../../node_modules/h3')['appendHeader']
@@ -20,10 +20,12 @@ declare global {
   const createEventStream: typeof import('../../node_modules/h3')['createEventStream']
   const createRouter: typeof import('../../node_modules/h3')['createRouter']
   const defaultContentType: typeof import('../../node_modules/h3')['defaultContentType']
-  const defineAppConfig: typeof import('../../node_modules/nuxt/dist/core/runtime/nitro/config')['defineAppConfig']
+  const defineAppConfig: typeof import('../../../node_modules/nuxt/dist/core/runtime/nitro/config')['defineAppConfig']
   const defineCachedEventHandler: typeof import('../../node_modules/nitropack/dist/runtime/internal/cache')['defineCachedEventHandler']
   const defineCachedFunction: typeof import('../../node_modules/nitropack/dist/runtime/internal/cache')['defineCachedFunction']
   const defineEventHandler: typeof import('../../node_modules/h3')['defineEventHandler']
+  const defineI18nConfig: typeof import('../../node_modules/@nuxtjs/i18n/dist/runtime/composables/shared')['defineI18nConfig']
+  const defineI18nLocale: typeof import('../../node_modules/@nuxtjs/i18n/dist/runtime/composables/shared')['defineI18nLocale']
   const defineLazyEventHandler: typeof import('../../node_modules/h3')['defineLazyEventHandler']
   const defineNitroErrorHandler: typeof import('../../node_modules/nitropack/dist/runtime/internal/error')['defineNitroErrorHandler']
   const defineNitroPlugin: typeof import('../../node_modules/nitropack/dist/runtime/internal/plugin')['defineNitroPlugin']
@@ -81,7 +83,7 @@ declare global {
   const lazyEventHandler: typeof import('../../node_modules/h3')['lazyEventHandler']
   const nitroPlugin: typeof import('../../node_modules/nitropack/dist/runtime/internal/plugin')['nitroPlugin']
   const parseCookies: typeof import('../../node_modules/h3')['parseCookies']
-  const parseMarkdown: typeof import('../../node_modules/@nuxtjs/mdc/dist/runtime/parser')['parseMarkdown']
+  const parseMarkdown: typeof import('../../../node_modules/@nuxtjs/mdc/dist/runtime/parser')['parseMarkdown']
   const promisifyNodeListener: typeof import('../../node_modules/h3')['promisifyNodeListener']
   const proxyRequest: typeof import('../../node_modules/h3')['proxyRequest']
   const readBody: typeof import('../../node_modules/h3')['readBody']
@@ -138,6 +140,7 @@ export { useEvent } from 'nitropack/runtime/internal/context';
 export { defineTask, runTask } from 'nitropack/runtime/internal/task';
 export { defineNitroErrorHandler } from 'nitropack/runtime/internal/error';
 export { appendCorsHeaders, appendCorsPreflightHeaders, appendHeader, appendHeaders, appendResponseHeader, appendResponseHeaders, assertMethod, callNodeListener, clearResponseHeaders, clearSession, createApp, createAppEventHandler, createError, createEvent, createEventStream, createRouter, defaultContentType, defineEventHandler, defineLazyEventHandler, defineNodeListener, defineNodeMiddleware, defineRequestMiddleware, defineResponseMiddleware, defineWebSocket, defineWebSocketHandler, deleteCookie, dynamicEventHandler, eventHandler, fetchWithEvent, fromNodeMiddleware, fromPlainHandler, fromWebHandler, getCookie, getHeader, getHeaders, getMethod, getProxyRequestHeaders, getQuery, getRequestFingerprint, getRequestHeader, getRequestHeaders, getRequestHost, getRequestIP, getRequestPath, getRequestProtocol, getRequestURL, getRequestWebStream, getResponseHeader, getResponseHeaders, getResponseStatus, getResponseStatusText, getRouterParam, getRouterParams, getSession, getValidatedQuery, getValidatedRouterParams, handleCacheHeaders, handleCors, isCorsOriginAllowed, isError, isEvent, isEventHandler, isMethod, isPreflightRequest, isStream, isWebResponse, lazyEventHandler, parseCookies, promisifyNodeListener, proxyRequest, readBody, readFormData, readMultipartFormData, readRawBody, readValidatedBody, removeResponseHeader, sanitizeStatusCode, sanitizeStatusMessage, sealSession, send, sendError, sendIterable, sendNoContent, sendProxy, sendRedirect, sendStream, sendWebResponse, serveStatic, setCookie, setHeader, setHeaders, setResponseHeader, setResponseHeaders, setResponseStatus, splitCookiesString, toEventHandler, toNodeListener, toPlainHandler, toWebHandler, toWebRequest, unsealSession, updateSession, useBase, useSession, writeEarlyHints } from 'h3';
-export { buildAssetsURL as __buildAssetsURL, publicAssetsURL as __publicAssetsURL } from '../../node_modules/nuxt/dist/core/runtime/nitro/paths';
-export { defineAppConfig } from '../../node_modules/nuxt/dist/core/runtime/nitro/config';
-export { parseMarkdown } from '../../node_modules/@nuxtjs/mdc/dist/runtime/parser';
+export { buildAssetsURL as __buildAssetsURL, publicAssetsURL as __publicAssetsURL } from '../../../node_modules/nuxt/dist/core/runtime/nitro/paths';
+export { defineAppConfig } from '../../../node_modules/nuxt/dist/core/runtime/nitro/config';
+export { parseMarkdown } from '../../../node_modules/@nuxtjs/mdc/dist/runtime/parser';
+export { defineI18nLocale, defineI18nConfig } from '../../node_modules/@nuxtjs/i18n/dist/runtime/composables/shared';
