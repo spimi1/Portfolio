@@ -3,6 +3,10 @@
       <NuxtPage />
       <NuxtLink />
     </NuxtLayout>
+    <div>
+      <Footer />
+    </div>
+
 </template>
 
 <style>

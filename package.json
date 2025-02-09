@@ -10,8 +10,11 @@
     "postinstall": "nuxt prepare"
   },
   "dependencies": {
+    "@heroicons/vue": "^2.2.0",
     "@nuxt/ui": "^2.21.0",
+    "@nuxt/ui-pro": "^3.0.0-alpha.12",
     "@nuxtjs/i18n": "^9.1.5",
+    "lucide-vue-next": "^0.475.0",
     "nuxt": "^3.14.159",
     "vue": "latest",
     "vue-i18n": "^10.0.5",

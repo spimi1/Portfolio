@@ -32,15 +32,8 @@ onUnmounted(() => {
 const items = [
   [
     {
-      label: "Language",
-      icon: "i-line-md:compass-twotone-loop",
-      disabled: true,
-    },
-  ],
-  [
-    {
       label: "Polish",
-      icon: "i-heroicons-pencil-square-20-solid",
+      icon: "mdi:language",
       shortcuts: ["P"],
       click: () => {
         setLocale("pl");
@@ -48,7 +41,7 @@ const items = [
     },
     {
       label: "English",
-      icon: "i-heroicons-pencil-square-20-solid",
+      icon: "mdi:language",
       shortcuts: ["E"],
       click: () => {
         setLocale("en");
@@ -58,54 +51,54 @@ const items = [
 ];
 </script>
 <template>
-  <nav class="font-mono flex items-center">
-    <UAvatar
-      class="mr-4"
-      chip-color="primary"
-      chip-text=""
-      chip-position="top-right"
-      size="sm"
-      src="https://avatars.githubusercontent.com/u/739984?v=4"
-      alt="Avatar"
-    />
-    <div class="w-24">
-      <span class="text-2xl">
-        {{ typedText }}
-        <span class="typed-cursor" :class="{ typing: isTyping }">|</span>
-      </span>
-    </div>
+  <div class="absolute border-2 rounded-2xl border-gray-200 dark:border-gray-800 bg-opacity-10 p-4 backdrop-blur-sm ">
+    <nav class="font-mono flex items-center bg-opcaity-10">
+      <UAvatar
+        class="mr-4"
+        chip-color="primary"
+        chip-text="Available"
+        chip-position="bottom-right"
+        size="md"
+        src="https://media2.giphy.com/media/v1.Y2lkPTc5MGI3NjExMjc4bmRpYjJpYm9lcXhjNzFuMWY0ZTZyMmg0azFkdmJjeGZsa2ZzbiZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/2kkdSiVkuKHzsCuou2/giphy.gif"
+        alt="Avatar"
+      />
+      <div class="w-24">
+        <span class="text-2xl">
+          {{ typedText }}
+          <span class="typed-cursor" :class="{ typing: isTyping }">|</span>
+        </span>
+      </div>
 
-    <ul class="flex flex-col md:flex-row md:space-x-4">
-      <li>
-        <NuxtLink :to="localePath('/')" class="link">{{ t("home") }}</NuxtLink>
-      </li>
-      <li>
-        <NuxtLink :to="localePath('/about')" class="link">{{
-          t("about")
-        }}</NuxtLink>
-      </li>
-      <li>
-        <NuxtLink to="/about" class="link">{{ t("about") }}</NuxtLink>
-      </li>
-      <li>
-        <NuxtLink :to="localePath('/projects')" class="link">{{
-          t("projects")
-        }}</NuxtLink>
-      </li>
-      <li>
-        <NuxtLink :to="localePath('/blog')" class="link">{{
-          t("blog")
-        }}</NuxtLink>
-      </li>
-    </ul>
-    <UDropdown :items="items" :popper="{ placement: 'bottom-start' }">
+      <ul class="flex flex-col md:flex-row md:space-x-4">
+        <li>
+          <NuxtLink :to="localePath('/')" class="link">{{ t("home") }}</NuxtLink>
+        </li>
+        <li>
+          <NuxtLink :to="localePath('/about')" class="link">{{
+            t("about")
+          }}</NuxtLink>
+        </li>
+        <li>
+          <NuxtLink :to="localePath('/projects')" class="link">{{
+            t("projects")
+          }}</NuxtLink>
+        </li>
+        <li>
+          <NuxtLink :to="localePath('/blog')" class="link">{{
+            t("blog")
+          }}</NuxtLink>
+        </li>
+      </ul>
+      <UDropdown :items="items" :popper="{ placement: 'bottom-start' }">
       <UButton
         color="white"
-        label="Options"
+        icon="famicons:language"
         trailing-icon="i-heroicons-chevron-down-20-solid"
+        class="flex items-centered rounded-full ml-20"
       />
     </UDropdown>
-  </nav>
+    </nav>
+  </div>
 </template>
 
 <style scoped>
@@ -126,7 +119,7 @@ const items = [
 .typed-cursor {
   display: inline;
   animation: blink 1s step-end infinite;
-  margin-left: 1px; /* Opcjonalnie, aby dodać odstęp między tekstem a kursorem */
+  margin-left: 0.2px; /* Opcjonalnie, aby dodać odstęp między tekstem a kursorem */
   vertical-align: baseline; /* Dodaj tę linię */
 }
 
