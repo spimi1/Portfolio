@@ -1,5 +1,5 @@
 <template>
-  <main class="min-h-screen p-6 space-y-12 relative z-0 pt-24">
+  <main class="min-h-screen p-6 space-y-12 pt-24">
     <!-- Profile Section -->
     <section class="max-w-6xl mx-auto">
       <div class="grid md:grid-cols-2 gap-8 items-center">
@@ -9,6 +9,7 @@
               size="2xl"
               src="https://media2.giphy.com/media/v1.Y2lkPTc5MGI3NjExMjc4bmRpYjJpYm9lcXhjNzFuMWY0ZTZyMmg0azFkdmJjeGZsa2ZzbiZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/2kkdSiVkuKHzsCuou2/giphy.gif"
               alt="Profile"
+              class="mix-blend-mode-overlay"
             />
             <div>
               <h1 class="text-4xl font-bold">Spimi</h1>
@@ -21,14 +22,14 @@
               <span class="text-sm font-medium">{{ visitorCount }} visitors</span>
             </div>
             <div class="flex items-center space-x-2">
-              <div class="relative">
+              <div class="">
                 <Icon 
                   name="mdi:heart"
                   @click="toggleLike"
                   :class="['w-5 h-5 cursor-pointer transition-all duration-300', 
                     hasLiked ? 'text-red-500 scale-110' : 'text-gray-500']" 
                 />
-                <div v-if="showHeartAnimation" class="absolute heart-animation">
+                <div v-if="showHeartAnimation" class="heart-animation z-auto">
                   ❤️
                 </div>
               </div>
@@ -41,7 +42,7 @@
             :contributions="contributions"
             class="w-full"
           />
-          <div class="mt-2 text-center">
+          <div class="mt-2 text-center relative z-10">
             <UButton
               icon="i-simple-icons-github"
               color="gray"
@@ -58,74 +59,22 @@
 
     <!-- About Section -->
     <section class="max-w-6xl mx-auto">
-      <h2 class="text-3xl font-bold mb-6">About Me</h2>
+      <h2 class="text-3xl font-bold mb-6">{{ t("aboutindex") }}</h2>
       <UCard class="dark:bg-gray-900">
         <p class="text-lg leading-relaxed">
-          I'm a passionate Full Stack Developer with a focus on modern web technologies.
-          I love building beautiful, responsive, and user-friendly applications.
-          My expertise spans across frontend and backend development, with a particular
-          interest in JavaScript/TypeScript ecosystems.
+          {{ t("abouts") }}
         </p>
       </UCard>
     </section>
 
-    <!-- Projects Section -->
-    <section class="max-w-6xl mx-auto relative z-0">
-      <h2 class="text-3xl font-bold mb-6">Featured Projects</h2>
-      <div class="grid md:grid-cols-3 gap-6">
-        <UCard 
-          v-for="project in projects" 
-          :key="project.title"
-          class="dark:bg-gray-900"
-        >
-          <template #header>
-            <div class="relative h-48 bg-gray-800 rounded-t-lg overflow-hidden">
-              <img 
-                :src="project.image" 
-                :alt="project.title"
-                class="w-full h-full object-cover"
-              />
-            </div>
-          </template>
-          <h3 class="text-xl font-semibold mb-2">{{ project.title }}</h3>
-          <p class="text-gray-600 dark:text-gray-400 mb-4">{{ project.description }}</p>
-          <div class="flex flex-wrap gap-2">
-            <UBadge 
-              v-for="tech in project.technologies" 
-              :key="tech" 
-              color="primary"
-              variant="subtle"
-            >
-              {{ tech }}
-            </UBadge>
-          </div>
-        </UCard>
-      </div>
-    </section>
-
-    <!-- Technologies Section -->
-    <section class="max-w-6xl mx-auto">
-      <h2 class="text-3xl font-bold mb-6">Technologies & Tools</h2>
-      <div class="grid gap-8">
-        <div v-for="category in technologies" :key="category.name" class="space-y-4">
-          <h3 class="text-xl font-semibold">{{ category.name }}</h3>
-          <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
-            <UCard
-              v-for="tech in category.items"
-              :key="tech.name"
-              class="flex flex-col items-center p-4 dark:bg-gray-900"
-            >
-              <Icon :name="tech.icon" class="w-8 h-8 mb-3" />
-              <span class="text-sm font-medium">{{ tech.name }}</span>
-            </UCard>
-          </div>
-        </div>
-      </div>
-    </section>
+    <projects />
+    <technologies />
   </main>
 </template>
 
 <script setup>
+const localePath = useLocalePath();
+const { t, setLocale } = useI18n();
 import GitHubCalendar from '~/components/GitHubCalendar.vue'
 import { ref, onMounted } from 'vue'
 
@@ -207,74 +156,12 @@ function toggleLike() {
   }
 }
 
-// Sample Projects Data
-const projects = [
-  {
-    title: 'E-commerce Platform',
-    description: 'A modern e-commerce platform built with Nuxt.js and Supabase',
-    image: '/placeholder.svg?height=300&width=400',
-    technologies: ['Nuxt.js', 'Supabase', 'TailwindCSS']
-  },
-  {
-    title: 'Task Management App',
-    description: 'A collaborative task management application with real-time updates',
-    image: '/placeholder.svg?height=300&width=400',
-    technologies: ['Vue.js', 'TypeScript', 'Nuxt UI']
-  },
-  {
-    title: 'Portfolio Website',
-    description: 'A personal portfolio website showcasing projects and skills',
-    image: '/placeholder.svg?height=300&width=400',
-    technologies: ['Next.js', 'React', 'TailwindCSS']
-  }
-]
-
-// Technologies Data with Iconify icons
-const technologies = [
-  {
-    name: 'Frontend',
-    items: [
-      { name: 'HTML', icon: 'fontisto:html5' },
-      { name: 'CSS', icon: 'flowbite:css-solid' },
-      { name: 'JavaScript', icon: 'fa6-brands:js' },
-      { name: 'TypeScript', icon: 'teenyicons:typescript-outline' },
-      { name: 'Vue.js', icon: 'carbon:logo-vue' },
-      { name: 'React', icon: 'mingcute:react-fill' }
-    ]
-  },
-  {
-    name: 'Frameworks',
-    items: [
-      { name: 'Nuxt.js', icon: 'simple-icons:nuxt' },
-      { name: 'Next.js', icon: 'akar-icons:nextjs-fill' },
-      { name: 'TailwindCSS', icon: 'teenyicons:tailwind-outline' },
-      { name: 'Nuxt UI', icon: 'lineicons:nuxt' }
-    ]
-  },
-  {
-    name: 'Backend & Database',
-    items: [
-      { name: 'Supabase', icon: 'ri:supabase-line' },
-      { name: 'Node.js', icon: 'tabler:brand-nodejs' },
-    ]
-  },
-  {
-    name: 'Tools & Version Control',
-    items: [
-      { name: 'Git', icon: 'iconoir:git' },
-      { name: 'GitHub', icon: 'line-md:github-twotone' },
-      { name: 'VS Code', icon: 'akar-icons:vscode-fill' },
-      { name: 'npm', icon: 'teenyicons:npm-outline' }
-    ]
-  }
-]
 </script>
 
 <style scoped>
 .heart-animation {
   animation: float-up 1s ease-out forwards;
   opacity: 0;
-  position: absolute;
   top: -20px;
   left: 50%;
   transform: translateX(-50%);

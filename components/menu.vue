@@ -51,10 +51,10 @@ const items = [
 ];
 </script>
 <template>
-  <div class="absolute border-2 rounded-2xl border-gray-200 dark:border-gray-800 bg-opacity-10 p-4 backdrop-blur-sm ">
-    <nav class="font-mono flex items-center bg-opcaity-10">
+  <div class="flex border-2 rounded-2xl border-gray-200 dark:border-gray-800 p-4 backdrop-blur-sm">
+    <nav class="font-mono flex items-center bg-opcaity-10 z-50">
       <UAvatar
-        class="mr-4"
+        class="mr-4 z-50"
         chip-color="primary"
         chip-text="Available"
         chip-position="bottom-right"
@@ -65,11 +65,11 @@ const items = [
       <div class="w-24">
         <span class="text-2xl">
           {{ typedText }}
-          <span class="typed-cursor" :class="{ typing: isTyping }">|</span>
+          <span class="typed-cursor z-50" :class="{ typing: isTyping }">|</span>
         </span>
       </div>
 
-      <ul class="flex flex-col md:flex-row md:space-x-4">
+      <ul class="flex flex-col md:flex-row md:space-x-4 z-50">
         <li>
           <NuxtLink :to="localePath('/')" class="link">{{ t("home") }}</NuxtLink>
         </li>
@@ -94,9 +94,12 @@ const items = [
         color="white"
         icon="famicons:language"
         trailing-icon="i-heroicons-chevron-down-20-solid"
-        class="flex items-centered rounded-full ml-20"
+        class="flex items-centered rounded-full ml-20 z-50"
       />
     </UDropdown>
+    <ClientOnly>
+      <ColorModeSelector />
+    </ClientOnly>
     </nav>
   </div>
 </template>
